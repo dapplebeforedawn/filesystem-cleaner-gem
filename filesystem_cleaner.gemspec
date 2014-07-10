@@ -8,9 +8,43 @@ Gem::Specification.new do |spec|
   spec.version       = FilesystemCleaner::VERSION
   spec.authors       = ["Mark Lorenz"]
   spec.email         = ["markjlorenz@dapplebeforedawn.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
-  spec.homepage      = ""
+  spec.description   = %q{For tests that need to modify files}
+  spec.summary       = <<-SUMMARY
+```ruby
+# spec/spec_helper.rb
+
+RSpec.configure do |config|
+ fs_cleaner = FileSystemCleaner.new(
+   Rails.root.join("public", "system", "test", "files"),
+   Rails.root.join("tmp, "files.bak")
+ )
+
+ config.before(:each) { fs_cleaner.save_files!(example) }
+ config.after(:each)  { fs_cleaner.restore_files!(example) }
+end
+```
+
+```ruby
+# spec/some_spec.rb
+
+describe "a filesystem modification", file: true do  # `file: true` activates the cleaner
+  before do
+    test_file    = Rails.root.join("public", "system", "test", "files", "\#{filename}.txt")
+    `cp \#{fixture_file} \#{test_file}`
+  end
+
+  it "reads the file" do
+    expect(MyFileReader.new(filename).to_s).to eq(File.read(fixture_file))
+  end
+
+  let(:filename)     { SecureRandom.uuid }
+  let(:fixture_file) { Rails.root.join("spec", "fixtures", "some_data.txt") }
+end
+```
+
+After the test runs, `public/system/test/files` is restored to it's pre-test state.
+  SUMMARY
+  spec.homepage      = "https://github.com/dapplebeforedawn/filesystem-cleaner-gem"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
@@ -20,4 +54,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
+
+  spec.add_dependency "rspec", "~>2.0"
 end

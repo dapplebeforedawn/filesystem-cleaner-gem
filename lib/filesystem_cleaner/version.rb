@@ -1,3 +1,3 @@
-module FilesystemCleaner
+class FilesystemCleaner
   VERSION = "0.0.1"
 end
